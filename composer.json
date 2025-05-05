@@ -1,6 +1,5 @@
 {
     "name": "liquidagencyptyltd/php-salesforce",
-    "type": "composer-plugin",
     "license": "MIT",
     "autoload": {
         "psr-4": {
