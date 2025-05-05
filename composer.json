@@ -1,8 +1,7 @@
 {
-    "name": "liquid-agency-pty-ltd/php-salesforce",
+    "name": "liquidagencyptyltd/php-salesforce",
     "type": "composer-plugin",
     "license": "MIT",
-    "keywords": [ "salesforce", "php", "soap" ],
     "autoload": {
         "psr-4": {
             "LiquidAgencyPtyLtd\\PhpSalesforce\\": "src/"
