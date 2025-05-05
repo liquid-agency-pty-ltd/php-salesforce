@@ -10,14 +10,14 @@ use stdClass;
 class Client
 {
     /**
-     * @var GuzzleClient HTTP client for API requests
-     */
-    protected GuzzleClient $httpClient;
-
-    /**
      * @var stdClass Configuration parameters
      */
     protected stdClass $config;
+
+    /**
+     * @var GuzzleClient|null HTTP client for API requests
+     */
+    protected ?GuzzleClient $httpClient;
 
     /**
      * @var string|null Salesforce access token
@@ -44,11 +44,6 @@ class Client
     {
         $this->config = (object)$config;
         $this->validateConfig();
-        
-        $this->httpClient = new GuzzleClient([
-            'base_uri' => $this->getLoginUrl(),
-            'http_errors' => false
-        ]);
     }
 
     /**
@@ -86,7 +81,13 @@ class Client
                 ]
             ];
 
-            $response = $this->httpClient->request('POST', '/services/oauth2/token', $parameters);
+            $loginClient = new GuzzleClient([
+                'base_uri' => $this->getLoginUrl(),
+                'http_errors' => false
+            ]);
+            
+            $response = $loginClient->request('POST', '/services/oauth2/token', $parameters);
+
             $statusCode = $response->getStatusCode();
             $responseData = json_decode($response->getBody(), true);
 
@@ -100,6 +101,16 @@ class Client
 
             $this->token = $responseData['access_token'];
             $this->instanceUrl = $responseData['instance_url'];
+            
+            // Recreate the HTTP client with the instance URL for API calls
+            $this->httpClient = new GuzzleClient([
+                'base_uri' => $this->instanceUrl,
+                'http_errors' => false,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->token,
+                    'Content-Type' => 'application/json'
+                ]
+            ]);
         } catch (GuzzleException $e) {
             throw new Exception('Failed to connect to Salesforce: ' . $e->getMessage());
         }
@@ -118,19 +129,18 @@ class Client
         $this->connect();
         
         try {
-            $client = new GuzzleClient([
-                'base_uri' => $this->instanceUrl,
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json'
-                ]
-            ]);
-            
-            $response = $client->request('POST', "/services/data/{$this->version}/sobjects/{$objectType}", [
+            $response = $this->httpClient->request('POST', "/services/data/{$this->version}/sobjects/{$objectType}", [
                 'json' => $data
             ]);
             
-            return json_decode($response->getBody(), true);
+            $result = json_decode($response->getBody(), true);
+            
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to create {$objectType}: " . 
+                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+            
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Failed to create {$objectType}: " . $e->getMessage());
         }
@@ -149,14 +159,13 @@ class Client
         $this->connect();
         
         try {
-            $client = new GuzzleClient([
-                'base_uri' => $this->instanceUrl,
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token
-                ]
-            ]);
+            $response = $this->httpClient->request('DELETE', "/services/data/{$this->version}/sobjects/{$objectType}/{$recordId}");
             
-            $response = $client->request('DELETE', "/services/data/{$this->version}/sobjects/{$objectType}/{$recordId}");
+            if ($response->getStatusCode() >= 400 && $response->getStatusCode() !== 404) {
+                $result = json_decode($response->getBody(), true);
+                throw new Exception("Failed to delete {$objectType}: " . 
+                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
             
             return $response->getStatusCode() === 204;
         } catch (GuzzleException $e) {
@@ -176,17 +185,17 @@ class Client
         $this->connect();
         
         try {
-            $client = new GuzzleClient([
-                'base_uri' => $this->instanceUrl,
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token
-                ]
-            ]);
-            
             $encodedQuery = urlencode($query);
-            $response = $client->request('GET', "/services/data/{$this->version}/query/?q={$encodedQuery}");
+            $response = $this->httpClient->request('GET', "/services/data/{$this->version}/query/?q={$encodedQuery}");
             
-            return json_decode($response->getBody(), true);
+            $result = json_decode($response->getBody(), true);
+            
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Query failed: " . 
+                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+            
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Query failed: " . $e->getMessage());
         }
@@ -207,21 +216,20 @@ class Client
         $this->connect();
         
         try {
-            $client = new GuzzleClient([
-                'base_uri' => $this->instanceUrl,
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json'
-                ]
-            ]);
-            
-            $response = $client->request(
+            $response = $this->httpClient->request(
                 'PATCH', 
                 "/services/data/{$this->version}/sobjects/{$objectType}/{$externalIdField}/{$externalId}", 
                 ['json' => $data]
             );
             
-            return json_decode($response->getBody(), true) ?: ['success' => true];
+            $result = json_decode($response->getBody(), true);
+            
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to upsert {$objectType}: " . 
+                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+            
+            return $result ?: ['success' => true];
         } catch (GuzzleException $e) {
             throw new Exception("Failed to upsert {$objectType}: " . $e->getMessage());
         }
