@@ -1,0 +1,21 @@
+{
+    "name": "liquid-agency-pty-ltd/php-salesforce",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "keywords": [ "salesforce", "php", "soap" ],
+    "autoload": {
+        "psr-4": {
+            "LiquidAgencyPtyLtd\\PhpSalesforce\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Harry Townson",
+            "email": "harry@liquid.com.au"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.9"
+    }
+}
