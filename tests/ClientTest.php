@@ -36,6 +36,18 @@ class ClientTest extends TestCase
     }
 
     /**
+     * Tests the retrieval of deleted ids for a specific <object data="
+     * 
+     * @return void
+     */
+    public function testGetDeleted(): void
+    {
+        $result = $this->client->getDeleted('Contact', date('c', strtotime('-5 days')), date('c'));
+
+        $this->assertIsArray($result);
+    }
+
+    /**
      * Tests the query method of the Salesforce client.
      * 
      * Verifies both the structure and content of the returned data:
@@ -64,5 +76,33 @@ class ClientTest extends TestCase
     {
         $this->expectException(\Exception::class);
         $this->client->query("SELECT Id, Name FROM InvalidObject");
+    }
+
+    /**
+     * Tests the retrieval of all objects in Salesfoce.
+     * 
+     * @return void
+     */
+    public function testListObjects(): void
+    {
+        $result = $this->client->listObjects();
+        
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        $this->assertArrayHasKey('sobjects', $result);
+        $this->assertNotEmpty($result['sobjects']);
+    }
+
+    /**
+     * Tests the retrieval of all objects in Salesfoce.
+     * 
+     * @return void
+     */
+    public function testListFields(): void
+    {
+        $result = $this->client->listFields('RecordType');
+
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
     }
 }

@@ -129,57 +129,144 @@ class Client
     /**
      * Create a record in Salesforce
      *
-     * @param string $objectType The Salesforce object type (e.g., 'Account', 'Contact')
+     * @param string $sobject The Salesforce object (e.g., 'Account', 'Contact')
      * @param array $data The record data to create
      * @return array The created record response
      * @throws Exception If the operation fails
      */
-    public function create(string $objectType, array $data): array
+    public function create(string $sobject, array $data): array
     {
         $this->connect();
         
         try {
-            $response = $this->httpClient->request('POST', "/services/data/{$this->version}/sobjects/{$objectType}", [
+            $response = $this->httpClient->request('POST', "/services/data/{$this->version}/sobjects/{$sobject}", [
                 'json' => $data
             ]);
             
             $result = json_decode($response->getBody(), true);
             
             if ($response->getStatusCode() >= 400) {
-                throw new Exception("Failed to create {$objectType}: " . 
-                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+                throw new Exception("Failed to create {$sobject}: " . 
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
             return $result;
         } catch (GuzzleException $e) {
-            throw new Exception("Failed to create {$objectType}: " . $e->getMessage());
+            throw new Exception("Failed to create {$sobject}: " . $e->getMessage());
         }
     }
 
     /**
      * Delete a record from Salesforce
      *
-     * @param string $objectType The Salesforce object type
+     * @param string $sobject The Salesforce object
      * @param string $recordId The ID of the record to delete
      * @return bool True if deletion was successful
      * @throws Exception If the operation fails
      */
-    public function delete(string $objectType, string $recordId): bool
+    public function delete(string $sobject, string $recordId): bool
     {
         $this->connect();
         
         try {
-            $response = $this->httpClient->request('DELETE', "/services/data/{$this->version}/sobjects/{$objectType}/{$recordId}");
+            $response = $this->httpClient->request('DELETE', "/services/data/{$this->version}/sobjects/{$sobject}/{$recordId}");
             
             if ($response->getStatusCode() >= 400 && $response->getStatusCode() !== 404) {
                 $result = json_decode($response->getBody(), true);
-                throw new Exception("Failed to delete {$objectType}: " . 
-                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+                throw new Exception("Failed to delete {$sobject}: " . 
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
             return $response->getStatusCode() === 204;
         } catch (GuzzleException $e) {
-            throw new Exception("Failed to delete {$objectType}: " . $e->getMessage());
+            throw new Exception("Failed to delete {$sobject}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get list of deleted records for an object in Salesforce
+     * 
+     * @param string $sobject The Salesforce object
+     * @param string $start The start date/time in ISO8601 format (e.g. 2023-01-01T00:00:00+00:00)
+     * @param string $end The end date/time in ISO8601 format (e.g. 2023-01-31T23:59:59+00:00)
+     * @return array List of records
+     * @throws Exception If the operation fails
+     */
+    public function getDeleted(string $sobject, string $start, string $end): array
+    {
+        $this->connect();
+
+        try {
+            $params = [
+                'start' => $start,
+                'end' => $end
+            ];
+
+            $response = $this->httpClient->request('GET', "/services/data/{$this->version}/sobjects/{$sobject}/deleted?" . http_build_query($params));
+
+            $result = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to list deleted {$sobject}: " .
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+
+            return $result['deletedRecords'];
+        } catch (GuzzleException $e) {
+            throw new Exception("Failed to list deleted {$sobject}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Retrieves a list of fields for an object in Salesforce.
+     * 
+     * @param string $sobject The Salesforce object
+     * @return array List of fields
+     * @throws Exception If the operation fails
+     */
+    public function listFields(string $sobject): array
+    {
+        $this->connect();
+
+        try {
+            $response = $this->httpClient->request('GET', "/services/data/{$this->version}/sobjects/{$sobject}/describe");
+
+            $result = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to list fields: " .
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+
+            return $result['fields'];
+        } catch (GuzzleException $e) {
+            throw new Exception("Failed to list fields: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Retrieves a list of all objects within Salesforce.
+     *
+     * @return array List of objects
+     * @throws Exception If the operation fails
+     */
+    public function listObjects(): array
+    {
+        $this->connect();
+
+        try {
+            $response = $this->httpClient->request('GET', "/services/data/{$this->version}/sobjects");
+
+            $result = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to list objects: " .
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+
+            return $result;
+        } catch (GuzzleException $e) {
+            throw new Exception("Failed to list objects: " . $e->getMessage());
         }
     }
 
@@ -202,7 +289,7 @@ class Client
             
             if ($response->getStatusCode() >= 400) {
                 throw new Exception("Query failed: " . 
-                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
             return $result;
@@ -214,34 +301,34 @@ class Client
     /**
      * Upsert (update or insert) a record in Salesforce
      *
-     * @param string $objectType The Salesforce object type
+     * @param string $sobject The Salesforce object
      * @param string $externalIdField The external ID field name
      * @param string $externalId The external ID value
      * @param array $data The record data
      * @return array The upsert response
      * @throws Exception If the operation fails
      */
-    public function upsert(string $objectType, string $externalIdField, string $externalId, array $data): array
+    public function upsert(string $sobject, string $externalIdField, string $externalId, array $data): array
     {
         $this->connect();
         
         try {
             $response = $this->httpClient->request(
                 'PATCH', 
-                "/services/data/{$this->version}/sobjects/{$objectType}/{$externalIdField}/{$externalId}", 
+                "/services/data/{$this->version}/sobjects/{$sobject}/{$externalIdField}/{$externalId}", 
                 ['json' => $data]
             );
             
             $result = json_decode($response->getBody(), true);
             
             if ($response->getStatusCode() >= 400) {
-                throw new Exception("Failed to upsert {$objectType}: " . 
-                    ($result['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+                throw new Exception("Failed to upsert {$sobject}: " . 
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
             return $result ?: ['success' => true];
         } catch (GuzzleException $e) {
-            throw new Exception("Failed to upsert {$objectType}: " . $e->getMessage());
+            throw new Exception("Failed to upsert {$sobject}: " . $e->getMessage());
         }
     }
 
