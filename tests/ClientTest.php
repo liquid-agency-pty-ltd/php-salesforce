@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use LiquidAgencyPtyLtd\PhpSalesforce\Client;
+use liquidagencyptyltd\phpsalesforce\Client;
 use PHPUnit\Framework\TestCase;
 use Dotenv\Dotenv;
 

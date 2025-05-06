@@ -1,6 +1,6 @@
 <?php
 
-namespace LiquidAgencyPtyLtd\PhpSalesforce;
+namespace liquidagencyptyltd\phpsalesforce;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;

@@ -3,7 +3,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "LiquidAgencyPtyLtd\\PhpSalesforce\\": "src/"
+            "liquidagencyptyltd\\phpsalesforce\\": "src/"
         }
     },
     "autoload-dev": {
@@ -20,7 +20,7 @@
     "extra": {
         "name": "PHP Salesforce",
         "handle": "php-salesforce",
-        "class": "liquidagencyptyltd\\php-salesforce\\Client"
+        "class": "liquidagencyptyltd\\phpsalesforce\\Client"
     },
     "require": {
         "php": "^8.2",
