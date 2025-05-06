@@ -211,9 +211,43 @@ class Client
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
 
-            return $result['deletedRecords'];
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Failed to list deleted {$sobject}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get list of updated records for an object in Salesforce
+     * 
+     * @param string $sobject The Salesforce object
+     * @param string $start The start date/time in ISO8601 format (e.g. 2023-01-01T00:00:00+00:00)
+     * @param string $end The end date/time in ISO8601 format (e.g. 2023-01-31T23:59:59+00:00)
+     * @return array List of records
+     * @throws Exception If the operation fails
+     */
+    public function getUpdated(string $sobject, string $start, string $end): array
+    {
+        $this->connect();
+
+        try {
+            $params = [
+                'start' => $start,
+                'end' => $end
+            ];
+
+            $response = $this->httpClient->request('GET', "/services/data/{$this->version}/sobjects/{$sobject}/updated?" . http_build_query($params));
+
+            $result = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Failed to list updated {$sobject}: " .
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+
+            return $result;
+        } catch (GuzzleException $e) {
+            throw new Exception("Failed to list updated {$sobject}: " . $e->getMessage());
         }
     }
 
@@ -264,7 +298,7 @@ class Client
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
 
-            return $result;
+            return $result['sobjects'];
         } catch (GuzzleException $e) {
             throw new Exception("Failed to list objects: " . $e->getMessage());
         }

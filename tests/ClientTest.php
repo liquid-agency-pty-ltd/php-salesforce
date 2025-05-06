@@ -36,7 +36,7 @@ class ClientTest extends TestCase
     }
 
     /**
-     * Tests the retrieval of deleted ids for a specific <object data="
+     * Tests the retrieval of deleted records for a specific object
      * 
      * @return void
      */
@@ -45,6 +45,20 @@ class ClientTest extends TestCase
         $result = $this->client->getDeleted('Contact', date('c', strtotime('-5 days')), date('c'));
 
         $this->assertIsArray($result);
+        $this->assertArrayHasKey('deletedRecords', $result);
+    }
+
+    /**
+     * Tests the retrieval of updated records for a specific object
+     * 
+     * @return void
+     */
+    public function testGetUpdated(): void
+    {
+        $result = $this->client->getUpdated('Contact', date('c', strtotime('-5 days')), date('c'));
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('ids', $result);
     }
 
     /**
@@ -89,8 +103,6 @@ class ClientTest extends TestCase
         
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
-        $this->assertArrayHasKey('sobjects', $result);
-        $this->assertNotEmpty($result['sobjects']);
     }
 
     /**
