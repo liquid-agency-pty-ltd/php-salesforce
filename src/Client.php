@@ -144,7 +144,7 @@ class Client
             ]);
             
             $result = json_decode($response->getBody(), true);
-            
+
             if ($response->getStatusCode() >= 400) {
                 throw new Exception("Failed to create {$sobject}: " . 
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
@@ -173,6 +173,7 @@ class Client
             
             if ($response->getStatusCode() >= 400 && $response->getStatusCode() !== 404) {
                 $result = json_decode($response->getBody(), true);
+
                 throw new Exception("Failed to delete {$sobject}: " . 
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }

@@ -13,6 +13,11 @@ class ClientTest extends TestCase
      */
     protected $client;
 
+     /** 
+     * @var string id of the created record
+     */
+    protected $created;
+
     /**
      * Sets up the test environment by creating a new Salesforce client instance.
      *
@@ -90,6 +95,31 @@ class ClientTest extends TestCase
     {
         $this->expectException(\Exception::class);
         $this->client->query("SELECT Id, Name FROM InvalidObject");
+    }
+
+    /** 
+     * Test creation and deletion of a record.
+     *
+     * @return void
+     */
+    public function testCreateAndDelete(): void
+    {
+        $result = $this->client->create('Contact', [
+            'FirstName' => 'John',
+            'LastName' => 'Doe',
+            'Email' => 'john.doe@example.com',
+        ]);
+
+        if(!empty($result) && !empty($result['id'])) {
+            $this->created = $result['id'];
+        }
+
+        $this->assertIsArray($result);
+        $this->assertTrue($result['success']);
+
+        $result = $this->client->delete('Contact', $this->created);
+
+        $this->assertTrue($result);
     }
 
     /**
