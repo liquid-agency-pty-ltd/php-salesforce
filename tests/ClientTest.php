@@ -8,8 +8,16 @@ use Dotenv\Dotenv;
 
 class ClientTest extends TestCase
 {
+    /** 
+     * @var Client 
+     */
     protected $client;
 
+    /**
+     * Sets up the test environment by creating a new Salesforce client instance.
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -27,6 +35,13 @@ class ClientTest extends TestCase
         ]);
     }
 
+    /**
+     * Tests the query method of the Salesforce client.
+     * 
+     * Verifies both the structure and content of the returned data:
+     * 
+     * @return void
+     */
     public function testQuery(): void
     {
         $result = $this->client->query("SELECT Id, Name, Email FROM Contact");
@@ -38,5 +53,16 @@ class ClientTest extends TestCase
         $this->assertIsArray($result['records']);
         $this->assertIsBool($result['done']);
         $this->assertIsInt($result['totalSize']);
+    }
+
+    /**
+     * Ensures an invalid SOQL query will throw an exception.
+     * 
+     * @return void
+     */
+    public function testInvalidQuery(): void
+    {
+        $this->expectException(\Exception::class);
+        $this->client->query("SELECT Id, Name FROM InvalidObject");
     }
 }
