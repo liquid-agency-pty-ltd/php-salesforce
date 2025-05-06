@@ -320,12 +320,39 @@ class Client
             $response = $this->httpClient->request('GET', "/services/data/{$this->version}/query/?q={$encodedQuery}");
             
             $result = json_decode($response->getBody(), true);
-            
+
             if ($response->getStatusCode() >= 400) {
                 throw new Exception("Query failed: " . 
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
+            return $result;
+        } catch (GuzzleException $e) {
+            throw new Exception("Query failed: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Query more records from Salesforce
+     *
+     * @param string $nextRecordsUrl The nextRecordsUrl from the previous query response
+     * @return array Query results
+     * @throws Exception If the query fails
+     */
+    public function queryMore(string $nextRecordsUrl): array
+    {
+        $this->connect();
+
+        try {
+            $response = $this->httpClient->request('GET', $nextRecordsUrl);
+
+            $result = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new Exception("Query failed: " .
+                    ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
+            }
+
             return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Query failed: " . $e->getMessage());
@@ -360,7 +387,7 @@ class Client
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
             
-            return $result ?: ['success' => true];
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Failed to upsert {$sobject}: " . $e->getMessage());
         }
