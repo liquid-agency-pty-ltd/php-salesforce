@@ -58,6 +58,16 @@ class Client
             : 'https://test.salesforce.com';
     }
 
+    /***
+     * Get the HTTP client for API requests
+     *
+     * @return GuzzleClient|null
+     */
+    protected function getHttpClient(): ?GuzzleClient
+    {
+        return $this->httpClient;
+    }
+
     /**
      * Authenticate with Salesforce and get access token
      *

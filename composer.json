@@ -6,6 +6,11 @@
             "LiquidAgencyPtyLtd\\PhpSalesforce\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Harry Townson",
@@ -22,6 +27,7 @@
         "guzzlehttp/guzzle": "^7.9"
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^11.5",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
