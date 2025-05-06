@@ -36,29 +36,29 @@ class ClientTest extends TestCase
     }
 
     /**
-     * Tests the retrieval of deleted records for a specific object
+     * Tests the retrieval of all objects in Salesfoce.
      * 
      * @return void
      */
-    public function testGetDeleted(): void
+    public function testListObjects(): void
     {
-        $result = $this->client->getDeleted('Contact', date('c', strtotime('-5 days')), date('c'));
-
+        $result = $this->client->listObjects();
+        
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('deletedRecords', $result);
+        $this->assertNotEmpty($result);
     }
 
     /**
-     * Tests the retrieval of updated records for a specific object
+     * Tests the retrieval of all objects in Salesfoce.
      * 
      * @return void
      */
-    public function testGetUpdated(): void
+    public function testListFields(): void
     {
-        $result = $this->client->getUpdated('Contact', date('c', strtotime('-5 days')), date('c'));
+        $result = $this->client->listFields('RecordType');
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('ids', $result);
+        $this->assertNotEmpty($result);
     }
 
     /**
@@ -93,28 +93,28 @@ class ClientTest extends TestCase
     }
 
     /**
-     * Tests the retrieval of all objects in Salesfoce.
+     * Tests the retrieval of deleted records for a specific object
      * 
      * @return void
      */
-    public function testListObjects(): void
+    public function testGetDeleted(): void
     {
-        $result = $this->client->listObjects();
-        
+        $result = $this->client->getDeleted('Contact', date('c', strtotime('-5 days')), date('c'));
+
         $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
+        $this->assertArrayHasKey('deletedRecords', $result);
     }
 
     /**
-     * Tests the retrieval of all objects in Salesfoce.
+     * Tests the retrieval of updated records for a specific object
      * 
      * @return void
      */
-    public function testListFields(): void
+    public function testGetUpdated(): void
     {
-        $result = $this->client->listFields('RecordType');
+        $result = $this->client->getUpdated('Contact', date('c', strtotime('-5 days')), date('c'));
 
         $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
+        $this->assertArrayHasKey('ids', $result);
     }
 }
