@@ -51,6 +51,8 @@ class ClientTest extends TestCase
         
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
+        $this->assertIsArray($result['sobjects']);
+        $this->assertNotEmpty($result['sobjects']);
     }
 
     /**
@@ -64,6 +66,8 @@ class ClientTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
+        $this->assertIsArray($result['fields']);
+        $this->assertNotEmpty($result['fields']);
     }
 
     /**

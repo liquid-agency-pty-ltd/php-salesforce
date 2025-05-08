@@ -273,7 +273,7 @@ class Client
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
 
-            return $result['fields'];
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Failed to list fields: " . $e->getMessage());
         }
@@ -299,7 +299,7 @@ class Client
                     ($result[0]['message'] ?? 'Unknown error') . ' (' . $response->getStatusCode() . ')');
             }
 
-            return $result['sobjects'];
+            return $result;
         } catch (GuzzleException $e) {
             throw new Exception("Failed to list objects: " . $e->getMessage());
         }
