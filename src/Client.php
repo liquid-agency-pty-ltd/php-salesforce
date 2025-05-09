@@ -361,6 +361,30 @@ class Client
     }
 
     /**
+     * Recursively uses query() and queryMore() to get all records for a query. No limit.
+     *
+     * @param string $query The SOQL query string
+     * @return array Query results
+     * @throws Exception If the query fails
+     */
+    public function queryall(string $query): array
+    {
+        $this->connect();
+
+        $results = [];
+        $response = $this->query($query);
+
+        $results = array_merge($results, $response['records']);
+
+        while (isset($response['nextRecordsUrl'])) {
+            $response = $this->queryMore($response['nextRecordsUrl']);
+            $results = array_merge($results, $response['records']);
+        }
+
+        return $results;
+    }
+
+    /**
      * Upsert (update or insert) a record in Salesforce
      *
      * @param string $sobject The Salesforce object
