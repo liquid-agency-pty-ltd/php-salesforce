@@ -367,7 +367,7 @@ class Client
      * @return array Query results
      * @throws Exception If the query fails
      */
-    public function queryall(string $query): array
+    public function queryAll(string $query): array
     {
         $this->connect();
 
