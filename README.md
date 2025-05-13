@@ -1,5 +1,7 @@
 # PHP Salesforce
 
+- PHP `^7.4 || ^8.0`
+
 This package is in development and not ready for use.
 
 Connect to a Salesforce org via REST API.
