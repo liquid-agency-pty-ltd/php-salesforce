@@ -10,9 +10,24 @@ Connect to a Salesforce org via REST API.
 - Will ask for a callback, and you have to enter one, but as we are using User/Password/Token to authenticate as well, it is not needed.
   `EXAMPLE.COM/oauth/callback` is what I usually set it to.
 
-### Instructions.
+### Installation.
+
+Put this in your `composer.json`
+```
+"require": {
+  "liquidagencyptyltd/php-salesforce": "^1.0",
+},
+"repositories": [
+  {
+    "type": "vcs",
+    "url": "git@github.com:liquid-agency-pty-ltd/php-salesforce.git"
+  }
+]
+```
 
 `composer install`
+
+### Usage.
 
 ```
 $client = new \liquidagencyptyltd\phpsalesforce\Client([

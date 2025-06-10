@@ -16,7 +16,7 @@ class ClientTest extends TestCase
      /** 
      * @var string id of the created record
      */
-    protected $created;
+    protected static $created;
 
     /**
      * Sets up the test environment by creating a new Salesforce client instance.
@@ -48,10 +48,8 @@ class ClientTest extends TestCase
     public function testListObjects(): void
     {
         $result = $this->client->listObjects();
-        
+
         $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-        $this->assertIsArray($result['sobjects']);
         $this->assertNotEmpty($result['sobjects']);
     }
 
@@ -65,8 +63,6 @@ class ClientTest extends TestCase
         $result = $this->client->listFields('RecordType');
 
         $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-        $this->assertIsArray($result['fields']);
         $this->assertNotEmpty($result['fields']);
     }
 
@@ -82,9 +78,6 @@ class ClientTest extends TestCase
         $result = $this->client->query("SELECT Id, Name, Email FROM Contact");
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('records', $result);
-        $this->assertArrayHasKey('done', $result);
-        $this->assertArrayHasKey('totalSize', $result);
         $this->assertIsArray($result['records']);
         $this->assertIsBool($result['done']);
         $this->assertIsInt($result['totalSize']);
@@ -102,11 +95,11 @@ class ClientTest extends TestCase
     }
 
     /** 
-     * Test creation and deletion of a record.
+     * Test creation of a record.
      *
      * @return void
      */
-    public function testCreateAndDelete(): void
+    public function testCreate(): void
     {
         $result = $this->client->create('Contact', [
             'FirstName' => 'John',
@@ -115,13 +108,21 @@ class ClientTest extends TestCase
         ]);
 
         if(!empty($result) && !empty($result['id'])) {
-            $this->created = $result['id'];
+            self::$created = $result['id'];
         }
 
         $this->assertIsArray($result);
         $this->assertTrue($result['success']);
+    }
 
-        $result = $this->client->delete('Contact', $this->created);
+    /** 
+     * Test deletion of a record.
+     *
+     * @return void
+     */
+    public function testDelete(): void
+    {
+        $result = $this->client->delete('Contact', self::$created);
 
         $this->assertTrue($result);
     }
@@ -136,7 +137,7 @@ class ClientTest extends TestCase
         $result = $this->client->getDeleted('Contact', date('c', strtotime('-5 days')), date('c'));
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('deletedRecords', $result);
+        $this->assertNotEmpty($result['deletedRecords']);
     }
 
     /**
